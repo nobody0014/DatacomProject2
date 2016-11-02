@@ -2,14 +2,7 @@ import java.util.*;
 import java.io.*;
 import java.net.*;
 import java.util.concurrent.*;
-import org.apache.http.*;
-import org.apache.commons.httpclient.methods.*;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.concurrent.FutureCallback;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.nio.client.*;
 
 public class Master {
 	private int[] categories;
@@ -29,6 +22,7 @@ public class Master {
 	}
 	
 	public void begin() {
+		long start = System.currentTimeMillis();
 		ArrayList<Worker> jobs = createJobs(requestNumber,maximumConcurrentRequests);
         ExtendedPoolExecutor exe;
         if(maximumConcurrentRequests/5 == 0){
@@ -38,7 +32,6 @@ public class Master {
         }
 		exe.createClients();
 		HttpGet g = new HttpGet(host);
-        long start = System.currentTimeMillis();
         for(Worker r: jobs){
             r.setConnectionInformation(g,exe.removeClient());
             exe.execute(r);
@@ -54,12 +47,9 @@ public class Master {
 				Thread.sleep(90);
 			}catch(Exception e){}
 		}
-
-        long end = System.currentTimeMillis();
 		exe.closeConnections();
-
+		long end = System.currentTimeMillis();
         benchmarking(jobs, end-start);
-
 	}
 
 
@@ -96,31 +86,34 @@ public class Master {
 		Collections.sort(timings);
 
 		long maxTime = timings.get(timings.size()-1);
-		double[] category = new double[6];
-		category[0] = maxTime * 0.5;
-		category[1] = maxTime * 0.6;
-		category[2] = maxTime * 0.7;
-		category[3] = maxTime * 0.8;
-		category[4] = maxTime * 0.9;
-		category[5] = maxTime;
-		int c = 0;
-		int ci = 1;
-		int totalReqPassed = 0;
-		for(long i : timings){
-			if(i > category[c]){
-				while (i > category[c]){
-					ci++;
-					c++;
-					peopleCat[ci] += peopleCat[ci-1];
-				}
+		int totalReqPassed = timings.size();
+		int cat = 0;
+		for(int i = 0; i < totalReqPassed; i++){
+			if(cat == 0 && i >= totalReqPassed/2.0){
+				peopleCat[1] = timings.get(i);
+				cat++;
 			}
-			totalReqPassed++;
-			peopleCat[ci]++;
+			else if(cat == 1 && i >= totalReqPassed * 60.0 / 100.0){
+				peopleCat[2] = timings.get(i);
+				cat++;
+			}
+			else if(cat == 2 && i >= totalReqPassed * 70.0 / 100.0){
+				peopleCat[3] = timings.get(i);
+				cat++;
+			}
+			else if(cat == 3 && i >= totalReqPassed * 80.0 / 100.0){
+				peopleCat[4] = timings.get(i);
+				cat++;
+			}
+			else if(cat == 4 && i >= totalReqPassed * 90.0 / 100.0){
+				peopleCat[5] = timings.get(i);
+				cat++;
+			}
 		}
-
+		peopleCat[6] = timings.get(timings.size()-1);
 		double totalTimeInS = totalTime/1000.0;
 		double avg = totalReqPassed/(totalTimeInS);
-		System.out.println("Time taken for tests: " + totalTimeInS +" s\n" + "Completed requests: " + totalReqPassed
+		System.out.println("\nTime taken for tests: " + totalTimeInS +" s\n" + "Completed requests: " + totalReqPassed
 		+ "\n" + "Failed requests: " + peopleCat[0] + "\nAvg requests per second: "
  		+ avg + " s\n\nPercentage of the requests served within a certain time (ms)" +
 				"\n50%  " + peopleCat[1]+

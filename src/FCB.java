@@ -1,9 +1,6 @@
 import org.apache.http.HttpResponse;
 import org.apache.http.concurrent.FutureCallback;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Future;
-
 /**
  * Created by Wit on 11/1/2016 AD.
  */
