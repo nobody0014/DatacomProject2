@@ -5,14 +5,12 @@ import java.util.concurrent.*;
 import org.apache.http.client.methods.HttpGet;
 
 public class Master {
-	private int[] categories;
 	private int maximumConcurrentRequests;
 	private long requestNumber;
 	private String host;
 	private String domain;
 	private String path;
 	private int port = 80;
-	private HttpGet gt;
 
 	public Master(String serverName, int maxCon, long reqNum){
 		host = serverName;
@@ -32,20 +30,21 @@ public class Master {
         }
 		exe.createClients();
 		HttpGet g = new HttpGet(host);
+		g.setHeader("P2Tag","u5780995");
         for(Worker r: jobs){
             r.setConnectionInformation(g,exe.removeClient());
             exe.execute(r);
 			while (!exe.isAvailable()){
 				try {
 					Thread.sleep(90);
-				}catch(Exception e){}
+				}catch(Exception e){e.printStackTrace();}
 			}
         }
         exe.shutdown();
         while (!exe.isTerminated()){
 			try {
 				Thread.sleep(90);
-			}catch(Exception e){}
+			}catch(Exception e){e.printStackTrace();}
 		}
 		exe.closeConnections();
 		long end = System.currentTimeMillis();
@@ -59,11 +58,11 @@ public class Master {
 		if(mc == 0){
 			mc = maxCon;
 		}
-		ArrayList<Worker> jobs = new ArrayList();
+		ArrayList<Worker> jobs = new ArrayList<>();
 		for(int i = 1; i < jobNum; i++){
-			jobs.add(new Worker(1000,mc,i));
+			jobs.add(new Worker(1000,mc));
 		}
-		jobs.add(new Worker((int)reqNum%1000,mc, (int)jobNum));
+		jobs.add(new Worker((int)reqNum%1000,mc));
 		return jobs;
 	}
 
@@ -142,14 +141,5 @@ public class Master {
 	}
 	public void setMaximumConcurrentRequest(int maxCon){
 		maximumConcurrentRequests = maxCon;
-	}
-	public long getRequestNumber(){
-		return requestNumber;
-	}
-	public String getDomain(){return domain;}
-	public String getPath(){return path;}
-	public int getPort(){return port;}
-	public int getMaximumConcurrentRequest(){
-		return maximumConcurrentRequests;
 	}
 }

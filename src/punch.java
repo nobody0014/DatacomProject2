@@ -3,8 +3,6 @@ public class punch {
 	public static void main(String[] args){
 		checkArgs(args);
 		Master m = new Master(args[args.length-1], Integer.parseInt(args[3]), Long.parseLong(args[1]));
-
-//		Master m = new Master("http://10.27.8.20:8080/",200,50000);
 		try{
 			m.begin();
 		}catch (Exception e){

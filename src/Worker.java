@@ -10,13 +10,11 @@ public class Worker implements Runnable {
 
 	private int maximumConcurrentRequests;
 	private int requestNumber;
-    private int id;
 
 	private CloseableHttpAsyncClient client;
 	private HttpGet req;
 
-	public Worker(int reqNum, int maxCon, int id){
-        this.id = id;
+	public Worker(int reqNum, int maxCon){
 		setRequestNumber(reqNum);
 		setMaximumConcurrentRequests(maxCon);
 	}
@@ -30,36 +28,28 @@ public class Worker implements Runnable {
         int c =  0;
         Counter counter = new Counter(maximumConcurrentRequests);
         ArrayList<FCB> fall = new ArrayList<>();
-//        ArrayList<Future<HttpResponse>> fra = new ArrayList<>();
         while (c < requestNumber){
             FCB f = new FCB(counter);
             fall.add(f);
             client.execute(req, f);
-//            fra.add(client.execute(req, f));
             c++;
             counter.increment();
             while (counter.isFull()){
                 try {
                     Thread.sleep(5);
-                }catch(Exception e){}
+                }catch(Exception e){e.printStackTrace();}
             }
         }
         while (!counter.isEmpty()){
             try {
                 Thread.sleep(5);
-            }catch(Exception e){}
+            }catch(Exception e){e.printStackTrace();}
         }
         int i = 0;
         for( FCB f  : fall){
             timing[i] = f.getTiming();
             i++;
         }
-//        for(Future<HttpResponse> f : fra){
-//            try{
-//                System.out.println(f.get());
-//            }catch(Exception e){e.printStackTrace();}
-//        }
-//        System.out.println("Hello");
 	}
 
 	public void setRequestNumber(int reqNum){
@@ -74,8 +64,5 @@ public class Worker implements Runnable {
 	public long[] getTiming(){return timing;}
     public CloseableHttpAsyncClient getClient(){
         return client;
-    }
-    public int getID(){
-        return id;
     }
 }

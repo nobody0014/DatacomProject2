@@ -1,0 +1,5 @@
+#!/bin/bash
+clear
+echo "Starting script…"
+java -jar target/punch.jar $@
+echo "Done with script"
